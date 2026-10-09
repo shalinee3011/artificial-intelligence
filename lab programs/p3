@@ -1,0 +1,31 @@
+from collections import deque
+
+def water_jug(cap1, cap2, target):
+    q = deque([(0, 0)])
+    visited = set()
+
+    while q:
+        a, b = q.popleft()
+
+        if (a, b) in visited:
+            continue
+        visited.add((a, b))
+
+        print(a, b)
+
+        if a == target or b == target:
+            print("Target reached")
+            return
+
+        q.append((cap1, b))
+        q.append((a, cap2))
+        q.append((0, b))
+        q.append((a, 0))
+
+        pour = min(a, cap2 - b)
+        q.append((a - pour, b + pour))
+
+        pour = min(b, cap1 - a)
+        q.append((a + pour, b - pour))
+
+water_jug(4, 3, 2)
