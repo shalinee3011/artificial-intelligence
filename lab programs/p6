@@ -1,0 +1,16 @@
+room = {'A': 'Dirty', 'B': 'Dirty'}
+position = 'A'
+
+while 'Dirty' in room.values():
+    print("Vacuum at", position)
+
+    if room[position] == 'Dirty':
+        room[position] = 'Clean'
+        print(position, "cleaned")
+
+    elif position == 'A':
+        position = 'B'
+    else:
+        position = 'A'
+
+print("All rooms are clean")
