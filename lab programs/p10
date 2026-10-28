@@ -1,0 +1,43 @@
+variables = ['WA', 'NT', 'SA', 'Q', 'NSW', 'V', 'T']
+domain = ['Red', 'Green', 'Blue']
+
+neighbors = {
+    'WA':  ['NT', 'SA'],
+    'NT':  ['WA', 'SA', 'Q'],
+    'SA':  ['WA', 'NT', 'Q', 'NSW', 'V'],
+    'Q':   ['NT', 'SA', 'NSW'],
+    'NSW': ['Q', 'SA', 'V'],
+    'V':   ['SA', 'NSW'],
+    'T':   []
+}
+
+def is_consistent(region, colour, assignment):
+    for n in neighbors[region]:
+        if n in assignment and assignment[n] == colour:
+            return False
+    return True
+
+def backtrack(assignment):
+    if len(assignment) == len(variables):
+        return assignment
+
+    region = next(v for v in variables if v not in assignment)
+
+    for colour in domain:
+        if is_consistent(region, colour, assignment):
+            assignment[region] = colour
+            result = backtrack(assignment)
+            if result is not None:
+                return result
+            del assignment[region]          # backtrack
+
+    return None
+
+solution = backtrack({})
+
+if solution:
+    print("Solution Found!\n")
+    for region in variables:
+        print(region, "->", solution[region])
+else:
+    print("No solution exists.")
