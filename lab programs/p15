@@ -1,0 +1,53 @@
+import math
+import random
+
+random.seed(1)
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+# XOR dataset
+X = [[0, 0], [0, 1], [1, 0], [1, 1]]
+Y = [0, 1, 1, 0]
+
+# Network: 2 inputs -> 4 hidden neurons -> 1 output
+HIDDEN = 4
+w1 = [[random.uniform(-1, 1) for _ in range(HIDDEN)] for _ in range(2)]
+b1 = [0.0] * HIDDEN
+w2 = [random.uniform(-1, 1) for _ in range(HIDDEN)]
+b2 = 0.0
+lr = 0.5
+
+def forward(x):
+    hidden = [sigmoid(sum(x[i] * w1[i][j] for i in range(2)) + b1[j])
+              for j in range(HIDDEN)]
+    out = sigmoid(sum(hidden[j] * w2[j] for j in range(HIDDEN)) + b2)
+    return hidden, out
+
+epochs = 10000
+for epoch in range(epochs + 1):
+    total_error = 0
+    for x, y in zip(X, Y):
+        hidden, out = forward(x)
+        error = y - out
+        total_error += error ** 2
+
+        # Backpropagation
+        d_out = error * out * (1 - out)
+        d_hidden = [d_out * w2[j] * hidden[j] * (1 - hidden[j]) for j in range(HIDDEN)]
+
+        for j in range(HIDDEN):
+            w2[j] += lr * d_out * hidden[j]
+            b1[j] += lr * d_hidden[j]
+            for i in range(2):
+                w1[i][j] += lr * d_hidden[j] * x[i]
+        b2 += lr * d_out
+
+    if epoch % 2000 == 0:
+        print("Epoch", epoch, "| Error:", round(total_error, 5))
+
+print("\nFinal predictions (XOR):")
+for x, y in zip(X, Y):
+    _, out = forward(x)
+    print("Input:", x, "| Expected:", y, "| Output:", round(out, 4),
+          "| Predicted:", round(out))
