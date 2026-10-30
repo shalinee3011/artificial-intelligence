@@ -1,0 +1,77 @@
+import math
+from collections import Counter
+
+# Play Tennis dataset: [Outlook, Temperature, Humidity, Wind, PlayTennis]
+features = ["Outlook", "Temperature", "Humidity", "Wind"]
+data = [
+    ["Sunny", "Hot", "High", "Weak", "No"],
+    ["Sunny", "Hot", "High", "Strong", "No"],
+    ["Overcast", "Hot", "High", "Weak", "Yes"],
+    ["Rain", "Mild", "High", "Weak", "Yes"],
+    ["Rain", "Cool", "Normal", "Weak", "Yes"],
+    ["Rain", "Cool", "Normal", "Strong", "No"],
+    ["Overcast", "Cool", "Normal", "Strong", "Yes"],
+    ["Sunny", "Mild", "High", "Weak", "No"],
+    ["Sunny", "Cool", "Normal", "Weak", "Yes"],
+    ["Rain", "Mild", "Normal", "Weak", "Yes"],
+    ["Sunny", "Mild", "Normal", "Strong", "Yes"],
+    ["Overcast", "Mild", "High", "Strong", "Yes"],
+    ["Overcast", "Hot", "Normal", "Weak", "Yes"],
+    ["Rain", "Mild", "High", "Strong", "No"],
+]
+
+def entropy(rows):
+    counts = Counter(row[-1] for row in rows)
+    total = len(rows)
+    return -sum((c / total) * math.log2(c / total) for c in counts.values())
+
+def information_gain(rows, col):
+    total = len(rows)
+    remainder = 0
+    for value in set(row[col] for row in rows):
+        subset = [row for row in rows if row[col] == value]
+        remainder += (len(subset) / total) * entropy(subset)
+    return entropy(rows) - remainder
+
+def build_tree(rows, available):
+    labels = [row[-1] for row in rows]
+    if len(set(labels)) == 1:
+        return labels[0]
+    if not available:
+        return Counter(labels).most_common(1)[0][0]
+
+    best = max(available, key=lambda c: information_gain(rows, c))
+    tree = {features[best]: {}}
+    remaining = [c for c in available if c != best]
+
+    for value in sorted(set(row[best] for row in rows)):
+        subset = [row for row in rows if row[best] == value]
+        tree[features[best]][value] = build_tree(subset, remaining)
+    return tree
+
+def print_tree(tree, indent=""):
+    if not isinstance(tree, dict):
+        print(indent + "-> " + tree)
+        return
+    for attr, branches in tree.items():
+        for value, subtree in branches.items():
+            print(indent + attr + " = " + value)
+            print_tree(subtree, indent + "    ")
+
+def predict(tree, sample):
+    while isinstance(tree, dict):
+        attr = next(iter(tree))
+        tree = tree[attr][sample[attr]]
+    return tree
+
+print("Information Gain of each attribute:")
+for i, name in enumerate(features):
+    print("  ", name, ":", round(information_gain(data, i), 3))
+
+tree = build_tree(data, list(range(len(features))))
+print("\nDecision Tree:\n")
+print_tree(tree)
+
+sample = {"Outlook": "Sunny", "Temperature": "Cool", "Humidity": "High", "Wind": "Strong"}
+print("\nNew sample:", sample)
+print("Prediction (Play Tennis):", predict(tree, sample))
