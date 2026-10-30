@@ -1,0 +1,38 @@
+import math
+
+tree = [[[3, 5], [6, 9]], [[1, 2], [0, -1]]]
+pruned = 0
+
+def alpha_beta(node, depth, alpha, beta, is_max):
+    global pruned
+    if not isinstance(node, list):
+        print("  Leaf reached, value =", node)
+        return node
+
+    if is_max:
+        best = -math.inf
+        for i, child in enumerate(node):
+            best = max(best, alpha_beta(child, depth + 1, alpha, beta, False))
+            alpha = max(alpha, best)
+            if beta <= alpha:
+                print("  Pruned remaining branches at MAX node, depth", depth,
+                      "(alpha =", alpha, ", beta =", beta, ")")
+                pruned += len(node) - i - 1
+                break
+        return best
+    else:
+        best = math.inf
+        for i, child in enumerate(node):
+            best = min(best, alpha_beta(child, depth + 1, alpha, beta, True))
+            beta = min(beta, best)
+            if beta <= alpha:
+                print("  Pruned remaining branches at MIN node, depth", depth,
+                      "(alpha =", alpha, ", beta =", beta, ")")
+                pruned += len(node) - i - 1
+                break
+        return best
+
+print("Alpha-Beta Pruning\n")
+result = alpha_beta(tree, 0, -math.inf, math.inf, True)
+print("\nOptimal value for MAX player:", result)
+print("Number of branches pruned:", pruned)
